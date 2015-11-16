@@ -14,28 +14,29 @@ class MoviesController < ApplicationController
    # @movies = Movie.all
     @checked_ratings = params[:ratings]
     @checked_ratings_from_session = session[:ratings]
-    
     if !@checked_ratings && !@checked_ratings_from_session
       @checked_ratings = {'G' => true,'PG' => true, 'PG-13'=> true, 'R' => true}
     elsif @checked_ratings_from_session && !@checked_ratings
       @checked_ratings = @checked_ratings_from_session
     end
+   
     @all_ratings = Movie.all_ratings
-    if params[:title] && params[:title] == 'sort'
-      @movies = Movie.all.order("title ASC")
+    if !params[:sort] && session[:sort]
+      params[:sort] = session[:sort]
+      redirect_to :sort => params[:sort]
+    end
+    if  params[:sort] == 'title'
+      @movies = Movie.where(rating: @checked_ratings.keys).order("title ASC")
       @hilite_title = 'hilite'
-    elsif params[:release_date] && params[:release_date] == 'sort'
-      @movies = Movie.all.order("release_date ASC")
+      session[:sort] = 'title'
+    elsif params[:sort] == 'release_date'
+      @movies = Movie.where(rating: @checked_ratings.keys).order("release_date ASC")
       @hilite_release_date = 'hilite'
+      session[:sort] = 'release_date'
     else
       @movies = Movie.where(rating: @checked_ratings.keys)
-      session[:ratings] = @checked_ratings
-#      @all_ratings.each do |rating|
-#        if !@checked_ratings[rating]
-#          @checked_ratings[rating] = "false"
-#        end
-#      end
     end
+    session[:ratings] = @checked_ratings
   end
 
   def new
